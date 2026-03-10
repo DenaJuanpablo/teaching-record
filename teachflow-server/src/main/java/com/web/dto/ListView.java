@@ -1,0 +1,22 @@
+// src/main/java/com/web/dto/ListView.java
+package com.web.dto;
+
+import java.util.List;
+
+public class ListView<T> {
+    private List<T> list;
+    private long total;
+
+    public ListView() {}
+
+    public ListView(List<T> list, long total) {
+        this.list = list;
+        this.total = total;
+    }
+
+    public List<T> getList() { return list; }
+    public void setList(List<T> list) { this.list = list; }
+
+    public long getTotal() { return total; }
+    public void setTotal(long total) { this.total = total; }
+}

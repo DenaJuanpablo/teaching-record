@@ -1,0 +1,8 @@
+teachflow-server/src/main/resources/application.yml
+teachflow-client/node_modules/
+teachflow-server/target/
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
