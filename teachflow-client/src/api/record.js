@@ -30,3 +30,10 @@ export function processRecord(id) {
 export function deleteRecord(id) {
     return request.delete(`/records/${id}`)
 }
+
+// ... 上面是你原来的代码（获取列表、删除等）
+
+// 获取数据看板的真实统计数据
+export function getDashboardSummary() {
+    return request.get('/dashboard/summary')
+}

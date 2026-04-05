@@ -3,7 +3,12 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
     {
         path: '/',
-        redirect: '/records'   // 新增：根路径重定向到列表页
+        redirect: '/dashboard'   // 修改：根路径重定向到看板页
+    },
+    {
+        path: '/dashboard',      // 新增：数据看板路由
+        name: 'Dashboard',
+        component: () => import('@/views/record/Dashboard.vue')
     },
     {
         path: '/upload',

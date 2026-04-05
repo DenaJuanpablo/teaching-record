@@ -12,6 +12,10 @@
       </el-menu-item>
       <el-divider style="margin: 8px 0;" />
 
+      <el-menu-item index="/dashboard">
+      <el-icon><DataLine /></el-icon>
+      <span>数据看板</span>
+      </el-menu-item>
       <!-- 导航菜单项 -->
       <el-menu-item index="/upload">
         <el-icon><Upload /></el-icon>
@@ -44,7 +48,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getRecord } from '@/api/record'
-import { Document, Upload, List } from '@element-plus/icons-vue'
+import {Document, Upload, List, DataLine} from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
