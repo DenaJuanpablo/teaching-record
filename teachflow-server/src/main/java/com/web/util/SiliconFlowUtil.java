@@ -20,15 +20,15 @@ public class SiliconFlowUtil {
 
     private static final Logger log = LoggerFactory.getLogger(SiliconFlowUtil.class);
     private static final String API_URL = "https://api.siliconflow.cn/v1/chat/completions";
+
     private final OkHttpClient client;
     private final ObjectMapper mapper;
     private final String apiKey;
 
-    // 从 application.yml 中读取 siliconflow.api-key
     public SiliconFlowUtil(@Value("${siliconflow.api-key}") String apiKey) {
         this.client = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
                 .build();
         this.mapper = new ObjectMapper();
         this.apiKey = apiKey;
@@ -39,14 +39,14 @@ public class SiliconFlowUtil {
         }
     }
 
-    public AnalysisResult analyze(String text, String sceneType) throws IOException {
+
+    public AnalysisResult analyze(String text, String sceneType, String sceneMeta) throws IOException {
         if (text == null || text.trim().isEmpty()) {
             return new AnalysisResult(new ArrayList<>(), "", null);
         }
 
         String truncated = text.length() > 2000 ? text.substring(0, 2000) : text;
 
-        // 根据场景类型构造不同的 outline 指令
         String outlineInstruction = "";
         if ("HOMEWORK_CHECK".equals(sceneType)) {
             outlineInstruction =
@@ -121,33 +121,35 @@ public class SiliconFlowUtil {
                             "     ]\n" +
                             "   }";
         } else {
+
             outlineInstruction =
-                    "3. 按通用讲课场景生成结构化大纲（outline），格式如下：\n" +
+                    "3. 按通用讲课场景生成结构化大纲（outline）。【重点要求】：请尽可能详尽地还原教学过程，包含至少 3-5 个主要的教学环节（如导入、知识讲解、互动探究、课堂总结等），每个环节下提取详细的知识点和师生互动细节。格式如下：\n" +
                             "   {\n" +
                             "     \"type\": \"GENERAL_REPORT\",\n" +
-                            "     \"topic\": \"课程主题（从文本中提取）\",\n" +
+                            "     \"topic\": \"核心课程主题（请详细概括，不少于15个字）\",\n" +
                             "     \"sections\": [\n" +
                             "       {\n" +
-                            "         \"title\": \"第一部分标题\",\n" +
-                            "         \"keyPoints\": [\"要点1\", \"要点2\"]\n" +
-                            "       },\n" +
-                            "       {\n" +
-                            "         \"title\": \"第二部分标题\",\n" +
-                            "         \"keyPoints\": [\"要点1\", \"要点2\"]\n" +
+                            "         \"title\": \"教学环节标题（如：一、实物导入与概念辨析）\",\n" +
+                            "         \"keyPoints\": [\n" +
+                            "           \"详细要点1（必须包含具体的讲解内容或知识点案例）\",\n" +
+                            "           \"详细要点2（请描述师生的活动或互动问答细节）\"\n" +
+                            "         ]\n" +
                             "       }\n" +
                             "     ]\n" +
                             "   }";
         }
 
+
         String prompt = String.format(
-                "请从以下文本中提取信息，并按 JSON 格式返回，包含三个字段：keywords（字符串数组）、summary（字符串）、outline（对象）。\n\n" +
-                        "文本：%s\n\n" +
-                        "要求：\n" +
-                        "1. keywords：提取5-10个关键词。\n" +
-                        "2. summary：生成1-2句话摘要。\n" +
+                "你是一个专业的教育教学评价与内容分析专家。请仔细阅读以下课堂真实的转写文本，并结合提供的【课堂背景信息】，按严格的 JSON 格式返回分析报告，包含三个字段：keywords（字符串数组）、summary（字符串）、outline（对象）。\n\n" +
+                        "【课堂背景信息】（如授课主题、人员、轮次等）：\n%s\n\n" +
+                        "【转写文本】：\n%s\n\n" +
+                        "【提取要求】：\n" +
+                        "1. keywords：精准提取 8-12 个核心教学关键词。\n" +
+                        "2. summary：生成一段结构完整、内容丰富的教学摘要（150-300字）。\n" +
                         "%s\n\n" +
-                        "请确保返回的 JSON 格式正确，不要包含多余的解释。",
-                truncated, outlineInstruction
+                        "【输出格式限制】：请直接以大括号 { 开始，大括号 } 结束，不要输出任何 Markdown 标记（如 ```json）。",
+                sceneMeta, truncated, outlineInstruction
         );
 
         ObjectNode requestBody = mapper.createObjectNode();
@@ -158,9 +160,10 @@ public class SiliconFlowUtil {
         userMessage.put("role", "user");
         userMessage.put("content", prompt);
         messages.add(userMessage);
+
         requestBody.set("messages", messages);
-        requestBody.put("temperature", 0.3);
-        requestBody.put("max_tokens", 500);
+        requestBody.put("temperature", 0.5);
+        requestBody.put("max_tokens", 2500);
 
         Request request = new Request.Builder()
                 .url(API_URL)
@@ -180,14 +183,12 @@ public class SiliconFlowUtil {
 
             String respBody = response.body().string();
             JsonNode root = mapper.readTree(respBody);
-
             String content = root.path("choices").get(0)
                     .path("message").path("content").asText();
 
-            // 清理可能存在的 markdown 代码块标记
             content = content.trim();
             if (content.startsWith("```json")) {
-                content = content.substring(7); // 去掉开头的 ```json
+                content = content.substring(7);
                 if (content.endsWith("```")) {
                     content = content.substring(0, content.length() - 3);
                 }
@@ -206,7 +207,7 @@ public class SiliconFlowUtil {
     public static class AnalysisResult {
         public List<String> keywords;
         public String summary;
-        public Object outline;  // 新增，因为 outline 可以是任意 JSON 结构
+        public Object outline;
 
         public AnalysisResult() {}
 

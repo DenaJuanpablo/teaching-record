@@ -59,30 +59,30 @@
 <script setup>
 import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import * as echarts from 'echarts'
-// 引入刚刚写好的 API 请求方法，以及 Element 的消息提示组件
+
 import { getDashboardSummary } from '@/api/record'
 import { ElMessage } from 'element-plus'
 
-// 1. 抓取 HTML 里的图表盒子
+
 const pieChartRef = ref(null)
 const lineChartRef = ref(null)
 const barChartRef = ref(null)
 
-// 2. 准备图表实例变量
+
 let pieChart = null
 let lineChart = null
 let barChart = null
 
-// 3. 准备响应式数据：初始值全设为 0
+
 const summaryData = reactive({
   totalRecords: 0,
   totalDuration: 0,
   successRate: 0.0
 })
 
-// 4. 封装一个专门画图的方法，接收后端传来的 data
+
 const renderCharts = (data) => {
-  // --- 渲染饼图 ---
+
   if (!pieChart) pieChart = echarts.init(pieChartRef.value)
   pieChart.setOption({
     tooltip: { trigger: 'item' },
@@ -96,12 +96,12 @@ const renderCharts = (data) => {
       label: { show: false, position: 'center' },
       emphasis: { label: { show: true, fontSize: 20, fontWeight: 'bold' } },
       labelLine: { show: false },
-      // 魔法在这里：直接用后端传过来的 data.pieData
+
       data: data.pieData && data.pieData.length > 0 ? data.pieData : [{ name: '暂无数据', value: 0 }]
     }]
   })
 
-  // --- 渲染折线图 ---
+
   if (!lineChart) lineChart = echarts.init(lineChartRef.value)
   lineChart.setOption({
     tooltip: { trigger: 'axis' },
@@ -109,7 +109,7 @@ const renderCharts = (data) => {
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: data.trendDates || [] // X轴：后端的 trendDates 数组
+      data: data.trendDates || []
     },
     yAxis: { type: 'value' },
     series: [{
@@ -123,11 +123,11 @@ const renderCharts = (data) => {
         ])
       },
       itemStyle: { color: '#409EFF' },
-      data: data.trendCounts || [] // Y轴：后端的 trendCounts 数组
+      data: data.trendCounts || []
     }]
   })
 
-  // --- 渲染条形图 ---
+
   if (!barChart) barChart = echarts.init(barChartRef.value)
   barChart.setOption({
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
@@ -135,7 +135,7 @@ const renderCharts = (data) => {
     xAxis: { type: 'value' },
     yAxis: {
       type: 'category',
-      data: data.barWords || [] // Y轴：后端的 barWords 关键词数组
+      data: data.barWords || []
     },
     series: [{
       name: '词频次数',
@@ -147,23 +147,23 @@ const renderCharts = (data) => {
         ]),
         borderRadius: [0, 10, 10, 0]
       },
-      data: data.barCounts || [] // X轴：后端的 barCounts 频次数组
+      data: data.barCounts || []
     }]
   })
 }
 
-// 5. 核心动作：去后端拿真数据
+
 const fetchRealData = async () => {
   try {
-    // 派外卖小哥去拿数据，等待 (await) 拿回来存进 res 里
+
     const res = await getDashboardSummary()
 
-    // 更新顶部卡片的数据，页面会自动变化
+
     summaryData.totalRecords = res.totalRecords || 0
     summaryData.totalDuration = res.totalDuration || 0
     summaryData.successRate = res.successRate || 0
 
-    // 把剩下的数据扔给画图师傅去画 ECharts
+
     renderCharts(res)
 
   } catch (error) {
@@ -172,16 +172,16 @@ const fetchRealData = async () => {
   }
 }
 
-// 6. 窗口自适应
+
 const handleResize = () => {
   pieChart?.resize()
   lineChart?.resize()
   barChart?.resize()
 }
 
-// 7. 生命周期管理
+
 onMounted(() => {
-  fetchRealData() // 页面一加载，立刻去拿真数据！
+  fetchRealData()
   window.addEventListener('resize', handleResize)
 })
 
@@ -219,7 +219,7 @@ onUnmounted(() => {
   opacity: 0.8;
 }
 
-/* 用漂亮的渐变色作为背景 */
+
 .bg-blue { background: linear-gradient(135deg, #409EFF, #73b3f3); }
 .bg-green { background: linear-gradient(135deg, #67C23A, #95d475); }
 .bg-purple { background: linear-gradient(135deg, #9c27b0, #d05ce3); }

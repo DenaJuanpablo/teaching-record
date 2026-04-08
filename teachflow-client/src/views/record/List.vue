@@ -28,7 +28,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 
-// 调用组合式函数，获取所有需要的数据和方法
+
 const {
   tableData,
   total,
@@ -42,7 +42,7 @@ const {
   deleteRecord
 } = useRecordList()
 
-// 查看详情，跳转到对应的记录详情页
+
 const goToDetail = (id) => {
   router.push(`/records/${id}`)
 }
@@ -53,7 +53,7 @@ const handleDelete = (id) => {
     cancelButtonText: '取消',
     type: 'warning'
   }).then(() => {
-    deleteRecord(id)  // 调用组合式函数中的删除方法
+    deleteRecord(id)
   }).catch(() => {})
 }
 </script>

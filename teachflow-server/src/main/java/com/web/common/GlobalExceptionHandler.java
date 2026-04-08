@@ -1,4 +1,4 @@
-// main/java/com/web/common/GlobalExceptionHandler.java
+
 package com.web.common;
 
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
         return ApiResponse.fail(1003, "file too large");
     }
 
-    // ✅ 有些情况下外层抛的是 MultipartException，需要兜底映射到 1003
+
     @ExceptionHandler(MultipartException.class)
     public ApiResponse<Void> handleMultipartException(MultipartException e) {
         Throwable c = e.getCause();

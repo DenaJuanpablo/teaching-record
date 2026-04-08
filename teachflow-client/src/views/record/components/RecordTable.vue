@@ -38,7 +38,7 @@ defineProps({
 
 const emit = defineEmits(['view', 'delete'])
 
-// 根据状态返回对应的标签类型
+
 const getStatusType = (status) => {
   const map = {
     UPLOADED: 'info',
@@ -49,7 +49,7 @@ const getStatusType = (status) => {
   return map[status] || 'info'
 }
 
-// 点击查看按钮，触发 view 事件并传递 id
+
 const handleView = (id) => {
   emit('view', id)
 }

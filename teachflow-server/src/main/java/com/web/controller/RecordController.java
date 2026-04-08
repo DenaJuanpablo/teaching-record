@@ -18,9 +18,9 @@ import java.time.format.DateTimeFormatter;
 public class RecordController {
 
     private final RecordService recordService;
-    // 按文档：v1 最大 500MB
+
     private static final long MAX_UPLOAD_BYTES = 500L * 1024 * 1024;
-    // 在 RecordController 类里加一个常量（放到字段区）
+
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
@@ -28,7 +28,7 @@ public class RecordController {
         this.recordService = recordService;
     }
 
-    // 替换 create() 方法为下面这个版本
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<CreateRecordView> create(
             @RequestPart("file") MultipartFile file,
@@ -41,7 +41,7 @@ public class RecordController {
             return ApiResponse.fail(1001, "file is required");
         }
 
-        // 文件类型白名单：mp4、mov、wav、mp3
+
         String originalName = file.getOriginalFilename();
         String lowerName = originalName == null ? "" : originalName.toLowerCase();
         if (!(lowerName.endsWith(".mp4")
@@ -76,7 +76,7 @@ public class RecordController {
                     (r.sceneType == null ? SceneType.GENERAL : r.sceneType).name()
             ));
         } catch (IllegalArgumentException e) {
-            // 用于 sceneMeta JSON 校验失败等场景
+
             return ApiResponse.fail(1001, e.getMessage());
         } catch (Exception e) {
             return ApiResponse.fail(5000, "upload failed: " + e.getMessage());
@@ -97,7 +97,7 @@ public class RecordController {
             return ApiResponse.fail(1001, "invalid page/size");
         }
 
-        // status 校验（不合法按 1001）
+
         if (status != null && !status.trim().isEmpty()) {
             try {
                 RecordStatus.valueOf(status.trim());
@@ -106,7 +106,7 @@ public class RecordController {
             }
         }
 
-        // dateFrom/dateTo 校验（格式：yyyy-MM-dd HH:mm:ss，不合法按 1001）
+
         LocalDateTime from = null;
         LocalDateTime to = null;
         try {
@@ -158,9 +158,9 @@ public class RecordController {
         if (r == null) {
             return ApiResponse.fail(2001, "record not found");
         }
-        if (r.status == RecordStatus.PROCESSING) {
-            return ApiResponse.fail(2002, "record not operable");
-        }
+
+
+
 
         boolean deleted = recordService.delete(id);
         if (!deleted) {
@@ -178,14 +178,14 @@ public class RecordController {
             }
             return ApiResponse.ok(pv);
         } catch (IllegalStateException e) {
-            // ✅ 对齐文档：不可操作统一 2002（如 PROCESSING/COMPLETED）
+
             return ApiResponse.fail(2002, "record not operable");
         } catch (Exception e) {
             return ApiResponse.fail(5000, "process failed: " + e.getMessage());
         }
     }
 
-    // RecordController.java 里：/api/records/{id}/transcript 这一整个方法
+
     @GetMapping("/{id}/transcript")
     public ApiResponse<TranscriptView> transcript(@PathVariable Long id) {
         try {
@@ -194,7 +194,7 @@ public class RecordController {
                 return ApiResponse.fail(2001, "record not found");
             }
 
-            // ✅ 新增：FAILED -> 3003（转写失败）
+
             if (r.status == RecordStatus.FAILED) {
                 String msg = (r.failedReason == null || r.failedReason.isBlank())
                         ? "transcript failed"
@@ -202,13 +202,13 @@ public class RecordController {
                 return ApiResponse.fail(3003, msg);
             }
 
-            // 未 FAILED 才继续读转写
+
             TranscriptView tv = recordService.getTranscript(id);
             if (tv == null) {
                 return ApiResponse.fail(2001, "record not found");
             }
 
-            // ✅ 仍然保留：未就绪 -> 3001
+
             if (tv.segments == null) {
                 return ApiResponse.fail(3001, "transcript not ready");
             }
@@ -227,7 +227,7 @@ public class RecordController {
                 return ApiResponse.fail(2001, "record not found");
             }
 
-            // ✅ 新增：FAILED -> 3004（分析失败）
+
             if (r.status == RecordStatus.FAILED) {
                 String msg = (r.failedReason == null || r.failedReason.isBlank())
                         ? "analysis failed"
@@ -240,7 +240,7 @@ public class RecordController {
                 return ApiResponse.fail(2001, "record not found");
             }
 
-            // ✅ 未就绪：没有分析内容 -> 3002
+
             if (av.summary == null && av.keywords == null && av.outline == null) {
                 return ApiResponse.fail(3002, "analysis not ready");
             }

@@ -30,12 +30,12 @@ defineProps({
 
 const emit = defineEmits(['page-change', 'size-change'])
 
-// 页码变化时触发
+
 const handlePageChange = (page) => {
   emit('page-change', page)
 }
 
-// 每页条数变化时触发
+
 const handleSizeChange = (size) => {
   emit('size-change', size)
 }

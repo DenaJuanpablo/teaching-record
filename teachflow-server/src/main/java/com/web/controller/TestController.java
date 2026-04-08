@@ -21,10 +21,7 @@ public class TestController {
     @Autowired
     private XfyunConfig xfyunConfig;
 
-    /**
-     * 测试签名生成接口
-     * 示例：GET /test/signature?appId=f693d579&accessKeyId=ea7edb38...&fileSize=123456&fileName=test.mp4&duration=30000&language=autodialect
-     */
+
     @GetMapping("/signature")
     public String testSignature(
             @RequestParam String appId,
@@ -34,11 +31,11 @@ public class TestController {
             @RequestParam String duration,
             @RequestParam(required = false, defaultValue = "autodialect") String language
     ) {
-        // 生成动态参数
+
         String dateTime = XfyunSignUtil.getCurrentDateTime();
         String signatureRandom = XfyunSignUtil.generateRandom16();
 
-        // 构建参数Map
+
         Map<String, String> params = new HashMap<>();
         params.put("appId", appId);
         params.put("accessKeyId", accessKeyId);
@@ -49,10 +46,10 @@ public class TestController {
         params.put("duration", duration);
         params.put("language", language);
 
-        // 生成签名
+
         String signature = XfyunSignUtil.generateSignature(params, xfyunConfig.getApiSecret());
 
-        // 返回便于查看的信息（实际调试时可返回JSON）
+
         return String.format(
                 "dateTime: %s\nsignatureRandom: %s\nsignature: %s",
                 dateTime, signatureRandom, signature
@@ -67,7 +64,7 @@ public class TestController {
             @RequestParam String text,
             @RequestParam(required = false, defaultValue = "GENERAL") String sceneType) {
         try {
-            SiliconFlowUtil.AnalysisResult result = siliconFlowUtil.analyze(text, sceneType);
+            SiliconFlowUtil.AnalysisResult result = siliconFlowUtil.analyze(text, sceneType, "测试用的附加背景信息");
             return ApiResponse.ok(result);
         } catch (Exception e) {
             return ApiResponse.fail(5000, e.getMessage());

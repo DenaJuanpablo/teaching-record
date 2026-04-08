@@ -5,7 +5,7 @@ public class RecordItemView {
     public String title;
     public Integer durationSeconds;
     public String status;
-    public String createdAt; // yyyy-MM-dd HH:mm:ss
+    public String createdAt;
     public String sceneType;
 
     public RecordItemView() {}

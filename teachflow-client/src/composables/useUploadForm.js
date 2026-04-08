@@ -1,10 +1,9 @@
 import { reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { createRecord } from '@/api/record'
-import { useRouter } from 'vue-router'  // 注意：组合式函数也可以使用路由！
+import { useRouter } from 'vue-router'
 
 export function useUploadForm() {
-    // 1. 定义响应式数据
     const form = reactive({
         file: null,
         title: '',
@@ -13,9 +12,8 @@ export function useUploadForm() {
         sceneMeta: {}
     })
     const uploading = ref(false)
-    const router = useRouter()  // 组合式函数内部也可以使用其他组合式函数
+    const router = useRouter()
 
-    // 2. 监听场景变化
     watch(() => form.sceneType, (newType) => {
         if (newType === 'HOMEWORK_CHECK') {
             form.sceneMeta = { assignmentName: '', studentName: '', questionRange: '', checkDate: '' }
@@ -26,8 +24,30 @@ export function useUploadForm() {
         }
     }, { immediate: true })
 
-    // 3. 定义方法
-    const handleFileChange = (file) => {
+
+    const handleFileChange = (file, fileList) => {
+        if (!file) return
+
+        const fileName = file.name.toLowerCase()
+        const isValidExt = fileName.endsWith('.mp4') || fileName.endsWith('.mov') ||
+            fileName.endsWith('.wav') || fileName.endsWith('.mp3')
+
+
+        if (!isValidExt) {
+            ElMessage.error('文件格式不支持，仅支持 mp4 / mov / wav / mp3')
+            if (fileList) fileList.splice(0, fileList.length)
+            form.file = null
+            return
+        }
+
+
+        if (file.raw.size > 500 * 1024 * 1024) {
+            ElMessage.error('文件大小不能超过 500MB')
+            if (fileList) fileList.splice(0, fileList.length)
+            form.file = null
+            return
+        }
+
         form.file = file.raw
     }
 
@@ -36,6 +56,7 @@ export function useUploadForm() {
             ElMessage.warning('请先选择文件')
             return
         }
+
         const formData = new FormData()
         formData.append('file', form.file)
         if (form.title) formData.append('title', form.title)
@@ -55,7 +76,7 @@ export function useUploadForm() {
                 router.push('/records')
             }
         } catch (error) {
-            console.error('上传失败', error)
+            ElMessage.error(error.message || '上传失败，请检查网络或后端服务')
         } finally {
             uploading.value = false
         }
@@ -66,10 +87,8 @@ export function useUploadForm() {
         form.title = ''
         form.durationSeconds = null
         form.sceneType = 'GENERAL'
-        // sceneMeta 会被 watch 自动重置
     }
 
-    // 4. 返回所有需要暴露给组件的属性和方法
     return {
         form,
         uploading,

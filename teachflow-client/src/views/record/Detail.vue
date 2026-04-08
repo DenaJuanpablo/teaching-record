@@ -9,13 +9,13 @@
       <p>创建时间：{{ record.createdAt }}</p>
       <p v-if="record.failedReason">失败原因：{{ record.failedReason }}</p>
 
-      <!-- 视频播放器（简单版） -->
+      
       <div v-if="record.videoUrl">
         <video :src="record.videoUrl" controls style="width: 100%; max-height: 400px;"></video>
       </div>
 
       <div style="margin: 20px 0;">
-        <!-- 当状态为 UPLOADED 或 FAILED 时显示处理/重试按钮 -->
+        
         <el-button
             v-if="record.status === 'UPLOADED' || record.status === 'FAILED'"
             type="primary"
@@ -24,13 +24,13 @@
         >
           {{ record.status === 'FAILED' ? '重试' : '处理' }}
         </el-button>
-        <!-- 当状态为 PROCESSING 时显示一个禁用按钮，提示处理中 -->
+        
         <el-button v-if="record.status === 'PROCESSING'" type="info" disabled>处理中...</el-button>
-        <!-- 原来的返回列表按钮保持不变 -->
+        
         <el-button @click="goBack">返回列表</el-button>
       </div>
 
-      <!-- 转写结果 -->
+      
       <el-divider />
       <h2>转写结果</h2>
       <div v-if="transcriptLoading">加载中...</div>
@@ -48,7 +48,7 @@
       </div>
       <div v-else>暂无转写数据</div>
 
-      <!-- 分析结果 -->
+      
       <el-divider />
       <h2>分析结果</h2>
       <div v-if="analysisLoading">加载中...</div>
@@ -58,11 +58,11 @@
         <p><strong>关键词：</strong>
           <el-tag v-for="kw in analysis.keywords" :key="kw" size="small" style="margin-right: 5px;">{{ kw }}</el-tag>
         </p>
-        <!-- 大纲展示（根据类型定制） -->
+        
         <div v-if="analysis.outline && analysis.outline.length">
           <p><strong>大纲：</strong></p>
           <div v-for="(item, idx) in analysis.outline" :key="idx">
-            <!-- 通用报告 -->
+            
             <div v-if="item.type === 'GENERAL_REPORT'">
               <h3>主题：{{ item.topic }}</h3>
               <el-timeline>
@@ -75,7 +75,7 @@
               </el-timeline>
             </div>
 
-            <!-- 作业检查报告 -->
+            
             <div v-else-if="item.type === 'HOMEWORK_CHECK_REPORT'">
               <p><strong>结论：</strong>{{ item.header.conclusion }}</p>
               <p><strong>标签：</strong>
@@ -102,7 +102,7 @@
               </div>
             </div>
 
-            <!-- 答辩报告 -->
+            
             <div v-else-if="item.type === 'DEFENSE_REPORT'">
               <p><strong>结论：</strong>{{ item.header.verdict }}</p>
               <p><strong>总体评价：</strong>{{ item.header.overallConclusion }}</p>
@@ -129,7 +129,7 @@
               </div>
             </div>
 
-            <!-- 未知类型，降级显示 JSON -->
+            
             <div v-else>
               <pre>{{ JSON.stringify(item, null, 2) }}</pre>
             </div>
@@ -166,10 +166,10 @@ const {
   loadAll
 } = useRecordDetail(id)
 
-// 页面加载时调用 loadAll
+
 loadAll()
 
-// 状态对应的标签类型
+
 const statusTagType = computed(() => {
   const map = {
     UPLOADED: 'info',
@@ -180,7 +180,7 @@ const statusTagType = computed(() => {
   return map[record.value?.status] || 'info'
 })
 
-// 格式化时间（毫秒转 mm:ss）
+
 const formatTime = (ms) => {
   if (!ms) return '0:00'
   const totalSeconds = Math.floor(ms / 1000)
@@ -189,17 +189,17 @@ const formatTime = (ms) => {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`
 }
 
-// 返回列表
+
 const goBack = () => {
   router.push('/records')
 }
 
-// 定义处理/重试按钮的点击方法
+
 const handleProcess = async () => {
-  await triggerProcess()   // 调用组合式函数中的触发方法
+  await triggerProcess()
 }
 
 onUnmounted(() => {
-  stopPolling()   // 清理轮询定时器
+  stopPolling()
 })
 </script>

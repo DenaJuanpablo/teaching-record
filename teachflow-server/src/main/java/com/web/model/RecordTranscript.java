@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Table(name = "record_transcripts")
 public class RecordTranscript {
 
-    // 一条 record 对应一条 transcript，用 recordId 作为主键最简单
+
     @Id
     @Column(name = "record_id")
     public Long recordId;

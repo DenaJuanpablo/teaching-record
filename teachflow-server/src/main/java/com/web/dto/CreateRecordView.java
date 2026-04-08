@@ -3,7 +3,7 @@ package com.web.dto;
 public class CreateRecordView {
     public Long id;
     public String status;
-    public String createdAt; // yyyy-MM-dd HH:mm:ss
+    public String createdAt;
     public String sceneType;
 
     public CreateRecordView() {}

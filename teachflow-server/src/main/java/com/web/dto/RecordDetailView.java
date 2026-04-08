@@ -6,7 +6,7 @@ public class RecordDetailView {
     public String videoUrl;
     public Integer durationSeconds;
     public String status;
-    public String createdAt;   // yyyy-MM-dd HH:mm:ss
+    public String createdAt;
     public String failedReason;
     public String sceneType;
     public String sceneMeta;

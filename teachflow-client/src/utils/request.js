@@ -1,48 +1,46 @@
+// 文件源: .\teachflow-client\src\utils\request.js
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
+import { useAuthStore } from '@/store/auth' // 引入 Store
 
-// 创建 axios 实例
 const request = axios.create({
-    baseURL: '/api',           // 后端接口的基础路径（所有请求都会自动加上 /api 前缀）
-    timeout: 60000              // 请求超时时间 60 秒（大文件上传需要长一点）
+    baseURL: '/api',
+    timeout: 60000
 })
 
-// 请求拦截器（在发送请求之前做些什么）
 request.interceptors.request.use(
     config => {
-        // 如果发送的是 FormData（文件上传），自动设置正确的 Content-Type
-        if (config.data instanceof FormData) {
-            config.headers['Content-Type'] = 'multipart/form-data'
+        const authStore = useAuthStore() // 获取 Store 实例
+        if (authStore.token) {
+            config.headers['Authorization'] = `Bearer ${authStore.token}`
         }
-        // 可以在这里添加 token 等认证信息（后续需要时再加）
         return config
     },
-    error => {
-        return Promise.reject(error)
-    }
+    error => Promise.reject(error)
 )
 
-// 响应拦截器（对响应数据做统一处理）
+// 响应拦截器处理 401 逻辑
 request.interceptors.response.use(
     response => {
+        // Axios 的 response.data 是后端返回的 JSON 体
         const res = response.data
-        // 假设后端返回格式为 { code, message, data }
+
+        // 如果后端返回的 code 是 0，代表业务成功
         if (res.code === 0) {
-            // 成功：只返回 data 部分，方便使用
+            // 【核心修复】直接返回 res.data，这样 Store 拿到的才是包含 token 的对象
             return res.data
         } else {
-            // 业务错误：构造一个包含完整响应数据的错误对象
-            const error = new Error(res.message || '操作失败')
-            error.code = res.code
-            error.responseData = res
-            return Promise.reject(error)
+            // 业务失败（如密码错误），抛出异常
+            return Promise.reject(new Error(res.message || '操作失败'))
         }
     },
     error => {
-        // 网络错误或超时
-        const netError = new Error('网络错误，请稍后重试')
-        netError.isNetwork = true
-        return Promise.reject(netError)
+        if (error.response?.status === 401) {
+            const authStore = useAuthStore()
+            authStore.logout()
+            // 使用 window.location 强制刷新并清理所有状态
+            window.location.href = '/login'
+        }
+        return Promise.reject(error)
     }
 )
 
